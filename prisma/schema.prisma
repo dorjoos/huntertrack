@@ -10,5 +10,40 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+}
+
+model Hunter {
+  id          Int        @id @default(autoincrement())
+  username    String     @unique
+  slug        String
+  avatarUrl   String?
+  kycVerified Boolean    @default(false)
+  addedAt     DateTime   @default(now())
+  lastSeenAt  DateTime?
+  activities  Activity[]
+}
+
+model Activity {
+  id                 Int      @id @default(autoincrement())
+  hunterId           Int
+  date               DateTime
+  bugTypeName        String
+  bugTypeSlug        String
+  bugTypeDescription String?
+  bugTypeLink        String?
+  workflowState      String
+  isNew              Boolean  @default(true)
+  crawledAt          DateTime @default(now())
+  hunter             Hunter   @relation(fields: [hunterId], references: [id], onDelete: Cascade)
+
+  @@unique([hunterId, date, bugTypeSlug, workflowState])
+}
+
+model PollLog {
+  id             Int       @id @default(autoincrement())
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+  newActivities  Int       @default(0)
+  status         String    @default("running")
+  error          String?
 }
