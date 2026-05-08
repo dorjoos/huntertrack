@@ -83,9 +83,9 @@ export default function ActivityEntry({
           </span>
         )}
         <StatusBadge state={workflowState} />
-        <span className="text-xs text-zinc-600 tabular-nums">
-          {new Date(date).toLocaleDateString()}
-        </span>
+        <time className="text-xs text-zinc-600 tabular-nums">
+          {date.slice(0, 10)}
+        </time>
       </div>
     </div>
   );
