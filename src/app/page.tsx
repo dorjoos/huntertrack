@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import StatsBar from "@/components/StatsBar";
 import ActivityEntry from "@/components/ActivityEntry";
-import { Inbox, Radar } from "lucide-react";
+import { Inbox, Radio, Sparkles } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,16 @@ export default async function DashboardPage() {
     ]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Dashboard</h1>
-        <p className="text-sm text-zinc-500 mt-1">Monitor your YesWeHack hacktivity feed</p>
+    <div className="space-y-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-3xl font-bold gradient-text tracking-tight">Dashboard</h1>
+          <p className="text-sm text-zinc-600 mt-1">YesWeHack hacktivity overview</p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+          <Radio className="w-3 h-3 text-green-400" />
+          <span className="text-[11px] font-medium text-green-400">Monitoring</span>
+        </div>
       </div>
 
       <StatsBar
@@ -34,22 +40,23 @@ export default async function DashboardPage() {
       />
 
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Radar className="w-4 h-4 text-accent" />
-          <h2 className="text-base font-semibold text-zinc-200">Recent Activity</h2>
+        <div className="flex items-center gap-2 mb-5">
+          <Sparkles className="w-4 h-4 text-purple-400" />
+          <h2 className="text-lg font-semibold text-zinc-200">Recent Activity</h2>
+          <span className="text-xs text-zinc-600 ml-1">Last 30 entries</span>
         </div>
         {recentActivities.length === 0 ? (
-          <div className="card p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
-              <Inbox className="w-6 h-6 text-zinc-600" />
+          <div className="card p-16 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center mb-5 animate-float">
+              <Inbox className="w-8 h-8 text-purple-400/50" />
             </div>
-            <p className="text-sm font-medium text-zinc-400">No activity yet</p>
-            <p className="text-xs text-zinc-600 mt-1">Add hunters to your watchlist and run a poll to get started.</p>
+            <p className="text-base font-medium text-zinc-400">No activity yet</p>
+            <p className="text-sm text-zinc-600 mt-2 max-w-xs">Add hunters to your watchlist and run a poll to start tracking hacktivity.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {recentActivities.map((a, i) => (
-              <div key={a.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+              <div key={a.id} className="animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
                 <ActivityEntry
                   id={a.id}
                   date={a.date.toISOString()}

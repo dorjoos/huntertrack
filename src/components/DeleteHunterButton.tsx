@@ -26,7 +26,7 @@ export default function DeleteHunterButton({
     <button
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(); }}
       disabled={loading}
-      className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+      className="p-1.5 rounded-lg text-zinc-700 hover:text-pink-400 hover:bg-pink-500/10 transition-all opacity-0 group-hover:opacity-100"
       title="Remove hunter"
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

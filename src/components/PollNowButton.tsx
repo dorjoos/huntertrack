@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, CheckCircle2, XCircle } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, Zap } from "lucide-react";
 
 export default function PollNowButton() {
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function PollNowButton() {
     const data = await res.json();
     setResult(
       data.status === "success"
-        ? { ok: true, text: `Found ${data.newActivities} new activities` }
+        ? { ok: true, text: `${data.newActivities} new activities found` }
         : { ok: false, text: data.error || "Poll failed" }
     );
     setLoading(false);
@@ -24,20 +24,28 @@ export default function PollNowButton() {
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-4">
       <button
         onClick={handlePoll}
         disabled={loading}
-        className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-emerald-400 text-zinc-950 text-sm font-semibold rounded-xl disabled:opacity-50 transition-colors"
+        className="btn-gradient flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl disabled:cursor-not-allowed"
       >
-        <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-        {loading ? "Polling..." : "Poll Now"}
+        {loading ? (
+          <RefreshCw className="w-4 h-4 animate-spin" />
+        ) : (
+          <Zap className="w-4 h-4" />
+        )}
+        {loading ? "Scanning..." : "Poll Now"}
       </button>
       {result && (
-        <span className={`flex items-center gap-1.5 text-sm ${result.ok ? "text-emerald-400" : "text-red-400"}`}>
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
+          result.ok
+            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+            : "bg-pink-500/10 text-pink-400 border border-pink-500/20"
+        }`}>
           {result.ok ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
           {result.text}
-        </span>
+        </div>
       )}
     </div>
   );

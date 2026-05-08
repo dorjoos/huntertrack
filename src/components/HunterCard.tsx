@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, User, ChevronRight, Activity } from "lucide-react";
+import { ShieldCheck, ChevronRight, Activity, Clock, Zap } from "lucide-react";
 import DeleteHunterButton from "./DeleteHunterButton";
 
 interface HunterCardProps {
@@ -19,45 +19,62 @@ export default function HunterCard({
   addedAt, lastSeenAt, activityCount, unreadCount,
 }: HunterCardProps) {
   return (
-    <div className="card card-glow group animate-fade-in">
-      <Link href={`/hunters/${slug}`} className="flex items-center gap-4 p-4">
+    <div className="card card-glow group animate-fade-up relative">
+      <Link href={`/hunters/${slug}`} className="flex items-center gap-5 p-5">
         <div className="relative">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={username} className="w-11 h-11 rounded-full ring-2 ring-white/5 group-hover:ring-accent/30 transition-all" />
+            <img
+              src={avatarUrl}
+              alt={username}
+              className="w-12 h-12 rounded-2xl ring-2 ring-purple-500/20 group-hover:ring-purple-500/40 transition-all"
+            />
           ) : (
-            <div className="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center ring-2 ring-white/5 group-hover:ring-accent/30 transition-all">
-              <span className="text-sm font-bold text-zinc-400">{username[0]?.toUpperCase()}</span>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center ring-2 ring-purple-500/20 group-hover:ring-purple-500/40 transition-all">
+              <span className="text-lg font-bold gradient-text">{username[0]?.toUpperCase()}</span>
             </div>
           )}
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-surface-raised animate-pulse-glow">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#06060a] shadow-lg shadow-pink-500/30">
               {unreadCount}
             </span>
           )}
         </div>
+
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-zinc-100 text-[15px]">{username}</span>
-            {kycVerified && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-semibold text-zinc-100 text-[15px] group-hover:text-white transition-colors">{username}</span>
+            {kycVerified && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">
+                <ShieldCheck className="w-3 h-3" />
+                KYC
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
+          <div className="flex items-center gap-4 text-[12px] text-zinc-600">
             <span className="flex items-center gap-1">
-              <Activity className="w-3 h-3" />
-              {activityCount} activities
+              <Activity className="w-3 h-3 text-purple-500/50" />
+              <span className="text-zinc-400">{activityCount}</span> reports
             </span>
-            <span>&middot;</span>
-            <span>Since {new Date(addedAt).toLocaleDateString()}</span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3 text-blue-500/50" />
+              Since {new Date(addedAt).toISOString().slice(0, 10)}
+            </span>
             {lastSeenAt && (
-              <>
-                <span>&middot;</span>
-                <span>Last seen {new Date(lastSeenAt).toLocaleDateString()}</span>
-              </>
+              <span className="flex items-center gap-1">
+                <Zap className="w-3 h-3 text-cyan-500/50" />
+                Last {new Date(lastSeenAt).toISOString().slice(0, 10)}
+              </span>
             )}
           </div>
         </div>
-        <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-white/[0.03] flex items-center justify-center group-hover:bg-purple-500/10 transition-colors">
+            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-purple-400 transition-colors" />
+          </div>
+        </div>
       </Link>
-      <div className="absolute top-3 right-3">
+      <div className="absolute top-4 right-4 z-10">
         <DeleteHunterButton hunterId={id} hunterName={username} />
       </div>
     </div>
