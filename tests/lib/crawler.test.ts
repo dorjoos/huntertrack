@@ -19,8 +19,8 @@ const mockItem = (username: string, bugSlug: string): YwhHacktivityItem => ({
       link: "https://cwe.mitre.org",
       remediation_link: null,
     },
-    status: { workflow_state: "accepted" },
   },
+  status: { workflow_state: "accepted" },
 });
 
 describe("filterForWatchlist", () => {

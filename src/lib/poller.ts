@@ -56,7 +56,7 @@ export async function runPoll(): Promise<PollResult> {
               bugTypeSlug: item.report.bug_type.slug,
               bugTypeDescription: item.report.bug_type.description || null,
               bugTypeLink: item.report.bug_type.link || null,
-              workflowState: item.report.status.workflow_state,
+              workflowState: item.status.workflow_state,
             },
           });
           totalNew++;

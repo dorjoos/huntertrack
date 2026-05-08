@@ -17,9 +17,9 @@ export interface YwhHacktivityItem {
       link: string;
       remediation_link: string | null;
     };
-    status: {
-      workflow_state: string;
-    };
+  };
+  status: {
+    workflow_state: string;
   };
 }
 

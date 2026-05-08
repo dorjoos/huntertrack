@@ -44,8 +44,8 @@ describe("runPoll", () => {
           link: "https://cwe.mitre.org",
           remediation_link: null,
         },
-        status: { workflow_state: "accepted" },
       },
+      status: { workflow_state: "accepted" },
     };
 
     vi.mocked(fetchHacktivityPage).mockResolvedValueOnce([mockItem]);
