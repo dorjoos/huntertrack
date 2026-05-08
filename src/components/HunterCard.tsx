@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, User } from "lucide-react";
+import { ShieldCheck, User, ChevronRight, Activity } from "lucide-react";
 import DeleteHunterButton from "./DeleteHunterButton";
 
 interface HunterCardProps {
@@ -19,39 +19,47 @@ export default function HunterCard({
   addedAt, lastSeenAt, activityCount, unreadCount,
 }: HunterCardProps) {
   return (
-    <div className="relative flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-      <Link href={`/hunters/${slug}`} className="flex items-center gap-4 flex-1 min-w-0">
+    <div className="card card-glow group animate-fade-in">
+      <Link href={`/hunters/${slug}`} className="flex items-center gap-4 p-4">
         <div className="relative">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={username} className="w-12 h-12 rounded-full" />
+            <img src={avatarUrl} alt={username} className="w-11 h-11 rounded-full ring-2 ring-white/5 group-hover:ring-accent/30 transition-all" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-              <User className="w-6 h-6 text-gray-500" />
+            <div className="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center ring-2 ring-white/5 group-hover:ring-accent/30 transition-all">
+              <span className="text-sm font-bold text-zinc-400">{username[0]?.toUpperCase()}</span>
             </div>
           )}
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-surface-raised animate-pulse-glow">
               {unreadCount}
             </span>
           )}
         </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-gray-900">{username}</span>
-            {kycVerified && <ShieldCheck className="w-4 h-4 text-green-500" />}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-zinc-100 text-[15px]">{username}</span>
+            {kycVerified && <ShieldCheck className="w-4 h-4 text-emerald-400" />}
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">
-            {activityCount} activities &middot; tracked since{" "}
-            {new Date(addedAt).toLocaleDateString()}
+          <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
+            <span className="flex items-center gap-1">
+              <Activity className="w-3 h-3" />
+              {activityCount} activities
+            </span>
+            <span>&middot;</span>
+            <span>Since {new Date(addedAt).toLocaleDateString()}</span>
+            {lastSeenAt && (
+              <>
+                <span>&middot;</span>
+                <span>Last seen {new Date(lastSeenAt).toLocaleDateString()}</span>
+              </>
+            )}
           </div>
-          {lastSeenAt && (
-            <div className="text-xs text-gray-400">
-              Last seen: {new Date(lastSeenAt).toLocaleDateString()}
-            </div>
-          )}
         </div>
+        <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 group-hover:translate-x-0.5 transition-all shrink-0" />
       </Link>
-      <DeleteHunterButton hunterId={id} hunterName={username} />
+      <div className="absolute top-3 right-3">
+        <DeleteHunterButton hunterId={id} hunterName={username} />
+      </div>
     </div>
   );
 }
