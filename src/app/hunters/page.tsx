@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import HunterCard from "@/components/HunterCard";
 import AddHunterForm from "@/components/AddHunterForm";
-import { UserSearch, Target } from "lucide-react";
+import { UserSearch } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +49,10 @@ export default async function HuntersPage() {
                 slug={h.slug}
                 avatarUrl={h.avatarUrl}
                 kycVerified={h.kycVerified}
+                points={h.points}
+                rank={h.rank}
+                nbReports={h.nbReports}
+                nationality={h.nationality}
                 addedAt={h.addedAt.toISOString()}
                 lastSeenAt={h.lastSeenAt?.toISOString() ?? null}
                 activityCount={h._count.activities}

@@ -2,35 +2,51 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    hunter: { findMany: vi.fn() },
-    activity: { create: vi.fn() },
     hunter: { findMany: vi.fn(), update: vi.fn() },
+    activity: { create: vi.fn() },
     pollLog: { create: vi.fn(), update: vi.fn() },
   },
 }));
 
 vi.mock("@/lib/crawler", () => ({
   fetchHacktivityPage: vi.fn(),
+  fetchHunterProfile: vi.fn(),
   filterForWatchlist: vi.fn(),
 }));
 
 import { runPoll } from "@/lib/poller";
 import { prisma } from "@/lib/db";
-import { fetchHacktivityPage, filterForWatchlist } from "@/lib/crawler";
+import { fetchHacktivityPage, fetchHunterProfile, filterForWatchlist } from "@/lib/crawler";
 
 describe("runPoll", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("creates a PollLog, crawls pages, stores results, and finalizes", async () => {
+  it("creates a PollLog, refreshes profiles, crawls pages, stores results, and finalizes", async () => {
     const mockPollLog = { id: 1 };
     vi.mocked(prisma.pollLog.create).mockResolvedValue(mockPollLog as any);
     vi.mocked(prisma.pollLog.update).mockResolvedValue({} as any);
     vi.mocked(prisma.hunter.findMany).mockResolvedValue([
-      { id: 1, username: "alice", slug: "alice" },
+      { id: 1, username: "alice", slug: "alice", points: 0, nbReports: 0 },
     ] as any);
     vi.mocked(prisma.hunter.update).mockResolvedValue({} as any);
+
+    vi.mocked(fetchHunterProfile).mockResolvedValue({
+      username: "alice",
+      slug: "alice",
+      public_firstname: null,
+      public_lastname: null,
+      hunter_profile: { public: true, website: null, website_url: null, github: null, twitter: null, skills: [], supported_languages: [] },
+      points: 50,
+      nb_reports: 3,
+      rank: 1000,
+      impact: null,
+      kyc_status: "V",
+      avatar: null,
+      nationality: null,
+      joined_on: "2026",
+    });
 
     const mockItem = {
       date: "2026-05-08",
@@ -57,6 +73,7 @@ describe("runPoll", () => {
 
     const result = await runPoll();
     expect(prisma.pollLog.create).toHaveBeenCalled();
+    expect(fetchHunterProfile).toHaveBeenCalledWith("alice");
     expect(fetchHacktivityPage).toHaveBeenCalledWith(1);
     expect(result.newActivities).toBeGreaterThanOrEqual(0);
     expect(prisma.pollLog.update).toHaveBeenCalled();

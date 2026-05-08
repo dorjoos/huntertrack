@@ -1,12 +1,20 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { ShieldCheck, ArrowLeft, Inbox, Activity, Calendar, Eye } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Inbox, Activity, Calendar, Eye, Star, Trophy, Globe, ExternalLink, AtSign } from "lucide-react";
 import Link from "next/link";
 import ActivityEntry from "@/components/ActivityEntry";
 import FilterBar from "@/components/FilterBar";
 import MarkAllReadButton from "@/components/MarkAllReadButton";
 
 export const dynamic = "force-dynamic";
+
+function flagEmoji(code: string) {
+  return code
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("");
+}
 
 export default async function HunterDetailPage({
   params,
@@ -41,6 +49,8 @@ export default async function HunterDetailPage({
     }),
   ]);
 
+  const fullName = [hunter.firstName, hunter.lastName].filter(Boolean).join(" ");
+
   return (
     <div className="space-y-8">
       <Link
@@ -52,7 +62,7 @@ export default async function HunterDetailPage({
       </Link>
 
       <div className="card p-6">
-        <div className="flex items-center gap-6">
+        <div className="flex items-start gap-6">
           {hunter.avatarUrl ? (
             <img
               src={hunter.avatarUrl}
@@ -65,8 +75,11 @@ export default async function HunterDetailPage({
             </div>
           )}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-bold text-white">{hunter.username}</h1>
+              {hunter.nationality && (
+                <span className="text-lg" title={hunter.nationality}>{flagEmoji(hunter.nationality)}</span>
+              )}
               {hunter.kycVerified && (
                 <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold border border-emerald-500/20">
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -74,19 +87,73 @@ export default async function HunterDetailPage({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-5 text-[13px] text-zinc-500">
-              <span className="flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-purple-500/50" />
-                <span className="text-zinc-300 font-medium">{totalCount}</span> reports
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-blue-500/50" />
-                Since {hunter.addedAt.toISOString().slice(0, 10)}
+            {fullName && (
+              <p className="text-sm text-zinc-400 mb-3">{fullName}</p>
+            )}
+
+            <div className="flex items-center gap-5 mb-4">
+              <div className="flex items-center gap-4 text-[13px]">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/10">
+                  <Star className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="text-amber-300 font-semibold">{hunter.points}</span>
+                  <span className="text-amber-400/50">pts</span>
+                </span>
+                {hunter.rank && (
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/10">
+                    <Trophy className="w-3.5 h-3.5 text-purple-400" />
+                    <span className="text-purple-300 font-semibold">#{hunter.rank.toLocaleString()}</span>
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/10">
+                  <Activity className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-blue-300 font-semibold">{hunter.nbReports}</span>
+                  <span className="text-blue-400/50">reports</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-zinc-500">
+              {hunter.github && (
+                <a
+                  href={`https://github.com/${hunter.github}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] text-zinc-500 hover:text-purple-400 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  {hunter.github}
+                </a>
+              )}
+              {hunter.twitter && (
+                <a
+                  href={`https://x.com/${hunter.twitter}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.03] text-zinc-500 hover:text-blue-400 transition-colors"
+                >
+                  <AtSign className="w-3 h-3" />
+                  {hunter.twitter}
+                </a>
+              )}
+              {hunter.website && (
+                <a
+                  href={`https://${hunter.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-zinc-500 hover:text-cyan-400 transition-colors"
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  {hunter.website}
+                </a>
+              )}
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                Tracked since {hunter.addedAt.toISOString().slice(0, 10)}
               </span>
               {unreadCount > 0 && (
-                <span className="flex items-center gap-1.5">
-                  <Eye className="w-3.5 h-3.5 text-pink-500/50" />
-                  <span className="text-pink-400 font-medium">{unreadCount}</span> unread
+                <span className="flex items-center gap-1 text-pink-400">
+                  <Eye className="w-3.5 h-3.5" />
+                  {unreadCount} unread
                 </span>
               )}
             </div>

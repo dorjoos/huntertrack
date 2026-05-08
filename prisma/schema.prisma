@@ -18,6 +18,15 @@ model Hunter {
   slug        String
   avatarUrl   String?
   kycVerified Boolean    @default(false)
+  points      Int        @default(0)
+  rank        Int?
+  nbReports   Int        @default(0)
+  nationality String?
+  firstName   String?
+  lastName    String?
+  website     String?
+  github      String?
+  twitter     String?
   addedAt     DateTime   @default(now())
   lastSeenAt  DateTime?
   activities  Activity[]

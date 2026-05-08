@@ -1,6 +1,7 @@
-import type { YwhHacktivityItem, YwhHacktivityResponse } from "./types";
+import type { YwhHacktivityItem, YwhHacktivityResponse, YwhHunterProfile } from "./types";
 
 const YWH_API = "https://api.yeswehack.com/hacktivity";
+const YWH_HUNTER_API = "https://api.yeswehack.com/hunters";
 
 export async function fetchHacktivityPage(
   page: number
@@ -12,6 +13,18 @@ export async function fetchHacktivityPage(
     return data.items ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchHunterProfile(
+  username: string
+): Promise<YwhHunterProfile | null> {
+  try {
+    const res = await fetch(`${YWH_HUNTER_API}/${encodeURIComponent(username)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
   }
 }
 

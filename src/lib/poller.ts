@@ -1,5 +1,5 @@
 import { prisma } from "./db";
-import { fetchHacktivityPage, filterForWatchlist } from "./crawler";
+import { fetchHacktivityPage, fetchHunterProfile, filterForWatchlist } from "./crawler";
 
 const MAX_PAGES = 10;
 const DELAY_MS = 1000;
@@ -26,6 +26,29 @@ export async function runPoll(): Promise<PollResult> {
         data: { finishedAt: new Date(), status: "success", newActivities: 0 },
       });
       return { pollLogId: pollLog.id, newActivities: 0, status: "success" };
+    }
+
+    for (const h of hunters) {
+      const profile = await fetchHunterProfile(h.username);
+      if (profile) {
+        await prisma.hunter.update({
+          where: { id: h.id },
+          data: {
+            avatarUrl: profile.avatar?.url ?? h.avatarUrl,
+            kycVerified: profile.kyc_status === "V",
+            points: profile.points ?? h.points,
+            rank: profile.rank,
+            nbReports: profile.nb_reports ?? h.nbReports,
+            nationality: profile.nationality ?? h.nationality,
+            firstName: profile.public_firstname ?? h.firstName,
+            lastName: profile.public_lastname ?? h.lastName,
+            website: profile.hunter_profile?.website ?? h.website,
+            github: profile.hunter_profile?.github ?? h.github,
+            twitter: profile.hunter_profile?.twitter ?? h.twitter,
+          },
+        });
+      }
+      await sleep(DELAY_MS);
     }
 
     const watchlist = new Set(hunters.map((h) => h.username));

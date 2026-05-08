@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, ChevronRight, Activity, Clock, Zap } from "lucide-react";
+import { ShieldCheck, ChevronRight, Activity, Trophy, Star, Globe } from "lucide-react";
 import DeleteHunterButton from "./DeleteHunterButton";
 
 interface HunterCardProps {
@@ -8,14 +8,27 @@ interface HunterCardProps {
   slug: string;
   avatarUrl: string | null;
   kycVerified: boolean;
+  points: number;
+  rank: number | null;
+  nbReports: number;
+  nationality: string | null;
   addedAt: string;
   lastSeenAt: string | null;
   activityCount: number;
   unreadCount: number;
 }
 
+function flagEmoji(code: string) {
+  return code
+    .toUpperCase()
+    .split("")
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("");
+}
+
 export default function HunterCard({
   id, username, slug, avatarUrl, kycVerified,
+  points, rank, nbReports, nationality,
   addedAt, lastSeenAt, activityCount, unreadCount,
 }: HunterCardProps) {
   return (
@@ -41,8 +54,9 @@ export default function HunterCard({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5">
             <span className="font-semibold text-zinc-100 text-[15px] group-hover:text-white transition-colors">{username}</span>
+            {nationality && <span className="text-sm" title={nationality}>{flagEmoji(nationality)}</span>}
             {kycVerified && (
               <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">
                 <ShieldCheck className="w-3 h-3" />
@@ -52,19 +66,23 @@ export default function HunterCard({
           </div>
           <div className="flex items-center gap-4 text-[12px] text-zinc-600">
             <span className="flex items-center gap-1">
-              <Activity className="w-3 h-3 text-purple-500/50" />
-              <span className="text-zinc-400">{activityCount}</span> reports
+              <Star className="w-3 h-3 text-amber-500/50" />
+              <span className="text-amber-400/80 font-medium">{points}</span> pts
             </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-blue-500/50" />
-              Since {new Date(addedAt).toISOString().slice(0, 10)}
-            </span>
-            {lastSeenAt && (
+            {rank && (
               <span className="flex items-center gap-1">
-                <Zap className="w-3 h-3 text-cyan-500/50" />
-                Last {new Date(lastSeenAt).toISOString().slice(0, 10)}
+                <Trophy className="w-3 h-3 text-purple-500/50" />
+                #<span className="text-purple-400/80 font-medium">{rank.toLocaleString()}</span>
               </span>
             )}
+            <span className="flex items-center gap-1">
+              <Activity className="w-3 h-3 text-blue-500/50" />
+              <span className="text-blue-400/80 font-medium">{nbReports}</span> reports
+            </span>
+            <span className="flex items-center gap-1">
+              <Globe className="w-3 h-3 text-cyan-500/50" />
+              <span className="text-zinc-500">{activityCount} tracked</span>
+            </span>
           </div>
         </div>
 
