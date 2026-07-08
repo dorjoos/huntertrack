@@ -1,26 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fetchHacktivityPage, filterForWatchlist } from "@/lib/crawler";
+import { fetchHacktivity, filterForWatchlist } from "@/lib/crawler";
 import type { YwhHacktivityItem } from "@/lib/types";
 
 const mockItem = (username: string, bugSlug: string): YwhHacktivityItem => ({
-  date: "2026-05-08",
-  report: {
-    hunter: {
-      username,
-      slug: username.toLowerCase(),
-      kyc_status: "V",
-      avatar: { url: "https://example.com/avatar.png" },
-    },
-    bug_type: {
-      name: `Bug (${bugSlug})`,
-      short_name: `Bug (${bugSlug})`,
-      slug: bugSlug,
-      description: "A bug",
-      link: "https://cwe.mitre.org",
-      remediation_link: null,
-    },
+  date: "2026-07-08",
+  status: "accepted",
+  bug_type: {
+    name: `Bug (${bugSlug})`,
+    slug: bugSlug,
+    description: "A bug",
+    link: "https://cwe.mitre.org",
+    remediation_link: null,
   },
-  status: { workflow_state: "accepted" },
+  hunter: {
+    username,
+    slug: username.toLowerCase(),
+    kyc_status: "V",
+    avatar: { url: "https://example.com/avatar.png" },
+  },
 });
 
 describe("filterForWatchlist", () => {
@@ -33,8 +30,8 @@ describe("filterForWatchlist", () => {
     const watchlist = new Set(["alice", "charlie"]);
     const result = filterForWatchlist(items, watchlist);
     expect(result).toHaveLength(2);
-    expect(result[0].report.hunter.username).toBe("alice");
-    expect(result[1].report.hunter.username).toBe("charlie");
+    expect(result[0].hunter.username).toBe("alice");
+    expect(result[1].hunter.username).toBe("charlie");
   });
 
   it("returns empty array when no matches", () => {
@@ -50,33 +47,47 @@ describe("filterForWatchlist", () => {
   });
 });
 
-describe("fetchHacktivityPage", () => {
+describe("fetchHacktivity", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("fetches and parses a page of hacktivity", async () => {
+  it("fetches and parses the hacktivity feed", async () => {
     const mockResponse = { items: [mockItem("alice", "xss")] };
     vi.spyOn(global, "fetch").mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     } as Response);
 
-    const result = await fetchHacktivityPage(1);
+    const result = await fetchHacktivity();
     expect(result).toHaveLength(1);
-    expect(result[0].report.hunter.username).toBe("alice");
+    expect(result![0].hunter.username).toBe("alice");
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://api.yeswehack.com/hacktivity?page=1"
+      "https://api.yeswehack.com/v2/hacktivity"
     );
   });
 
-  it("returns empty array on fetch error", async () => {
+  it("returns null on HTTP error so the poller can flag it", async () => {
     vi.spyOn(global, "fetch").mockResolvedValueOnce({
       ok: false,
-      status: 500,
+      status: 404,
     } as Response);
 
-    const result = await fetchHacktivityPage(1);
-    expect(result).toHaveLength(0);
+    expect(await fetchHacktivity()).toBeNull();
+  });
+
+  it("returns null on network error", async () => {
+    vi.spyOn(global, "fetch").mockRejectedValueOnce(new Error("ECONNRESET"));
+
+    expect(await fetchHacktivity()).toBeNull();
+  });
+
+  it("returns empty array when response has no items", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    } as Response);
+
+    expect(await fetchHacktivity()).toEqual([]);
   });
 });

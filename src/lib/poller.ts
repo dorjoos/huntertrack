@@ -1,7 +1,6 @@
 import { prisma } from "./db";
-import { fetchHacktivityPage, fetchHunterProfile, filterForWatchlist } from "./crawler";
+import { fetchHacktivity, fetchHunterProfile, filterForWatchlist } from "./crawler";
 
-const MAX_PAGES = 10;
 const DELAY_MS = 1000;
 
 function sleep(ms: number) {
@@ -51,6 +50,11 @@ export async function runPoll(): Promise<PollResult> {
       await sleep(DELAY_MS);
     }
 
+    const items = await fetchHacktivity();
+    if (items === null) {
+      throw new Error("YesWeHack hacktivity API request failed");
+    }
+
     const watchlist = new Set(hunters.map((h) => h.username));
     const hunterByUsername = new Map(
       hunters.map((h) => [h.username.toLowerCase(), h])
@@ -58,46 +62,37 @@ export async function runPoll(): Promise<PollResult> {
 
     let totalNew = 0;
 
-    for (let page = 1; page <= MAX_PAGES; page++) {
-      const items = await fetchHacktivityPage(page);
-      if (items.length === 0) break;
+    const matched = filterForWatchlist(items, watchlist);
 
-      const matched = filterForWatchlist(items, watchlist);
+    for (const item of matched) {
+      const hunter = hunterByUsername.get(item.hunter.username.toLowerCase());
+      if (!hunter) continue;
 
-      for (const item of matched) {
-        const hunter = hunterByUsername.get(
-          item.report.hunter.username.toLowerCase()
-        );
-        if (!hunter) continue;
+      try {
+        await prisma.activity.create({
+          data: {
+            hunterId: hunter.id,
+            date: new Date(item.date),
+            bugTypeName: item.bug_type.name,
+            bugTypeSlug: item.bug_type.slug,
+            bugTypeDescription: item.bug_type.description || null,
+            bugTypeLink: item.bug_type.link || null,
+            workflowState: item.status,
+          },
+        });
+        totalNew++;
 
-        try {
-          await prisma.activity.create({
-            data: {
-              hunterId: hunter.id,
-              date: new Date(item.date),
-              bugTypeName: item.report.bug_type.name,
-              bugTypeSlug: item.report.bug_type.slug,
-              bugTypeDescription: item.report.bug_type.description || null,
-              bugTypeLink: item.report.bug_type.link || null,
-              workflowState: item.status.workflow_state,
-            },
-          });
-          totalNew++;
-
-          await prisma.hunter.update({
-            where: { id: hunter.id },
-            data: {
-              avatarUrl: item.report.hunter.avatar?.url ?? undefined,
-              kycVerified: item.report.hunter.kyc_status === "V",
-              lastSeenAt: new Date(item.date),
-            },
-          });
-        } catch {
-          // unique constraint violation = duplicate, skip
-        }
+        await prisma.hunter.update({
+          where: { id: hunter.id },
+          data: {
+            avatarUrl: item.hunter.avatar?.url ?? undefined,
+            kycVerified: item.hunter.kyc_status === "V",
+            lastSeenAt: new Date(item.date),
+          },
+        });
+      } catch {
+        // unique constraint violation = duplicate, skip
       }
-
-      if (page < MAX_PAGES) await sleep(DELAY_MS);
     }
 
     await prisma.pollLog.update({
