@@ -73,7 +73,7 @@ export default function ActivityEntry({
       <div className="flex items-center gap-3 shrink-0">
         {isNew && (
           <span className="text-[10px] font-bold text-term-amber term-glow-amber">
-            <span className="term-blink">●</span>NEW
+            <span className="term-blink">●</span>UNREAD
           </span>
         )}
         <StatusBadge state={workflowState} />

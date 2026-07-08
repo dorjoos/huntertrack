@@ -1,8 +1,9 @@
 const stateColors: Record<string, string> = {
-  new: "text-term-amber",
+  new: "text-term-bright",
   accepted: "text-term-accent2",
   resolved: "text-term-amber",
   informative: "text-term-mid",
+  closed: "text-term-dim",
   not_applicable: "text-term-dim",
 };
 
