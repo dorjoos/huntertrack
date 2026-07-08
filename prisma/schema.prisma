@@ -36,11 +36,15 @@ model Activity {
   bugTypeDescription String?
   bugTypeLink        String?
   workflowState      String
+  // v2 hacktivity items carry no report id or time, so same-day reports of
+  // the same bug type and state are only distinguishable by their position:
+  // ordinal 1..N within the (hunter, date, bugType, state) group.
+  ordinal            Int      @default(1)
   isNew              Boolean  @default(true)
   crawledAt          DateTime @default(now())
   hunter             Hunter   @relation(fields: [hunterId], references: [id], onDelete: Cascade)
 
-  @@unique([hunterId, date, bugTypeSlug, workflowState])
+  @@unique([hunterId, date, bugTypeSlug, workflowState, ordinal])
 }
 
 model PollLog {

@@ -64,35 +64,65 @@ export async function runPoll(): Promise<PollResult> {
 
     const matched = filterForWatchlist(items, watchlist);
 
+    // v2 items carry no report id, so distinct same-day reports of the same
+    // bug type and state look identical. Group them, compare the feed count
+    // against the DB count per group, and insert the missing ones with
+    // ordinals — 13 identical feed entries become 13 rows, idempotently.
+    type Group = {
+      hunter: (typeof hunters)[number];
+      item: (typeof matched)[number];
+      count: number;
+    };
+    const groups = new Map<string, Group>();
     for (const item of matched) {
       const hunter = hunterByUsername.get(item.hunter.username.toLowerCase());
       if (!hunter) continue;
+      const key = [hunter.id, item.date, item.bug_type.slug, item.status].join("|");
+      const group = groups.get(key);
+      if (group) group.count++;
+      else groups.set(key, { hunter, item, count: 1 });
+    }
 
-      try {
-        await prisma.activity.create({
-          data: {
-            hunterId: hunter.id,
-            date: new Date(item.date),
-            bugTypeName: item.bug_type.name,
-            bugTypeSlug: item.bug_type.slug,
-            bugTypeDescription: item.bug_type.description || null,
-            bugTypeLink: item.bug_type.link || null,
-            workflowState: item.status,
-          },
-        });
-        totalNew++;
+    for (const { hunter, item, count } of groups.values()) {
+      const existing = await prisma.activity.count({
+        where: {
+          hunterId: hunter.id,
+          date: new Date(item.date),
+          bugTypeSlug: item.bug_type.slug,
+          workflowState: item.status,
+        },
+      });
 
-        await prisma.hunter.update({
-          where: { id: hunter.id },
-          data: {
-            avatarUrl: item.hunter.avatar?.url ?? undefined,
-            kycVerified: item.hunter.kyc_status === "V",
-            lastSeenAt: new Date(item.date),
-          },
-        });
-      } catch {
-        // unique constraint violation = duplicate, skip
+      for (let ordinal = existing + 1; ordinal <= count; ordinal++) {
+        try {
+          await prisma.activity.create({
+            data: {
+              hunterId: hunter.id,
+              date: new Date(item.date),
+              bugTypeName: item.bug_type.name,
+              bugTypeSlug: item.bug_type.slug,
+              bugTypeDescription: item.bug_type.description || null,
+              bugTypeLink: item.bug_type.link || null,
+              workflowState: item.status,
+              ordinal,
+            },
+          });
+          totalNew++;
+        } catch (err) {
+          // P2002 = unique constraint violation, i.e. a concurrent duplicate —
+          // safe to skip. Anything else must surface as a failed poll.
+          if ((err as { code?: string })?.code !== "P2002") throw err;
+        }
       }
+
+      await prisma.hunter.update({
+        where: { id: hunter.id },
+        data: {
+          avatarUrl: item.hunter.avatar?.url ?? undefined,
+          kycVerified: item.hunter.kyc_status === "V",
+          lastSeenAt: new Date(item.date),
+        },
+      });
     }
 
     await prisma.pollLog.update({

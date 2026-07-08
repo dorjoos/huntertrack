@@ -4,7 +4,7 @@ import type { YwhHacktivityItem, YwhHunterProfile } from "@/lib/types";
 vi.mock("@/lib/db", () => ({
   prisma: {
     hunter: { findMany: vi.fn(), update: vi.fn() },
-    activity: { create: vi.fn() },
+    activity: { create: vi.fn(), count: vi.fn() },
     pollLog: { create: vi.fn(), update: vi.fn() },
   },
 }));
@@ -65,6 +65,7 @@ describe("runPoll", () => {
     vi.mocked(fetchHunterProfile).mockResolvedValue(mockProfile);
     vi.mocked(fetchHacktivity).mockResolvedValue([mockItem]);
     vi.mocked(filterForWatchlist).mockReturnValue([mockItem]);
+    vi.mocked(prisma.activity.count).mockResolvedValue(0);
     vi.mocked(prisma.activity.create).mockResolvedValue({ id: 1 } as MockResult);
 
     const result = await runPoll();
@@ -78,11 +79,39 @@ describe("runPoll", () => {
         bugTypeName: "XSS",
         bugTypeSlug: "xss",
         workflowState: "accepted",
+        ordinal: 1,
       }),
     });
     expect(result.status).toBe("success");
     expect(result.newActivities).toBe(1);
     expect(prisma.pollLog.update).toHaveBeenCalled();
+  });
+
+  it("stores same-day duplicate reports as separate rows with ordinals", async () => {
+    vi.mocked(prisma.pollLog.create).mockResolvedValue({ id: 4 } as MockResult);
+    vi.mocked(prisma.pollLog.update).mockResolvedValue({} as MockResult);
+    vi.mocked(prisma.hunter.findMany).mockResolvedValue([
+      { id: 1, username: "alice", slug: "alice", points: 0, nbReports: 0 },
+    ] as MockResult);
+    vi.mocked(prisma.hunter.update).mockResolvedValue({} as MockResult);
+    vi.mocked(fetchHunterProfile).mockResolvedValue(mockProfile);
+    // Feed shows the same (hunter, date, bugType, state) tuple 3 times,
+    // and the DB already holds 1 row for it — expect 2 more, ordinals 2 and 3.
+    vi.mocked(fetchHacktivity).mockResolvedValue([mockItem, mockItem, mockItem]);
+    vi.mocked(filterForWatchlist).mockReturnValue([mockItem, mockItem, mockItem]);
+    vi.mocked(prisma.activity.count).mockResolvedValue(1);
+    vi.mocked(prisma.activity.create).mockResolvedValue({ id: 1 } as MockResult);
+
+    const result = await runPoll();
+
+    expect(prisma.activity.create).toHaveBeenCalledTimes(2);
+    expect(prisma.activity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ ordinal: 2 }),
+    });
+    expect(prisma.activity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ ordinal: 3 }),
+    });
+    expect(result.newActivities).toBe(2);
   });
 
   it("marks PollLog as error when the hacktivity fetch fails", async () => {
@@ -104,6 +133,28 @@ describe("runPoll", () => {
         data: expect.objectContaining({ status: "error" }),
       })
     );
+  });
+
+  it("skips unique-constraint duplicates but surfaces other insert errors", async () => {
+    vi.mocked(prisma.pollLog.create).mockResolvedValue({ id: 5 } as MockResult);
+    vi.mocked(prisma.pollLog.update).mockResolvedValue({} as MockResult);
+    vi.mocked(prisma.hunter.findMany).mockResolvedValue([
+      { id: 1, username: "alice", slug: "alice", points: 0, nbReports: 0 },
+    ] as MockResult);
+    vi.mocked(prisma.hunter.update).mockResolvedValue({} as MockResult);
+    vi.mocked(fetchHunterProfile).mockResolvedValue(mockProfile);
+    vi.mocked(fetchHacktivity).mockResolvedValue([mockItem, mockItem]);
+    vi.mocked(filterForWatchlist).mockReturnValue([mockItem, mockItem]);
+    vi.mocked(prisma.activity.count).mockResolvedValue(0);
+    vi.mocked(prisma.activity.create)
+      .mockRejectedValueOnce({ code: "P2002" })
+      .mockRejectedValueOnce(new Error("Unknown argument `ordinal`"));
+
+    const result = await runPoll();
+
+    // P2002 skipped silently, the validation error fails the poll loudly
+    expect(result.status).toBe("error");
+    expect(result.error).toContain("ordinal");
   });
 
   it("handles errors and marks PollLog as error", async () => {
