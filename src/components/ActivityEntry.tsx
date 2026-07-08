@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import StatusBadge from "./StatusBadge";
-import { Bug, ExternalLink, Sparkles } from "lucide-react";
 
 interface ActivityEntryProps {
   id: number;
@@ -13,6 +12,13 @@ interface ActivityEntryProps {
   isNew: boolean;
   hunter?: { username: string; slug: string; avatarUrl: string | null };
   showHunter?: boolean;
+}
+
+function formatType(name: string) {
+  return name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 export default function ActivityEntry({
@@ -40,53 +46,37 @@ export default function ActivityEntry({
   return (
     <div
       onClick={markAsRead}
-      className={`group relative flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
-        isNew
-          ? "bg-gradient-to-r from-purple-500/[0.06] via-blue-500/[0.04] to-transparent border-purple-500/20 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/5"
-          : "bg-white/[0.02] border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08]"
+      className={`flex items-center justify-between gap-3 px-3 py-2.5 border-b border-dashed border-term-line cursor-pointer transition-colors hover:bg-term-accent/5 ${
+        isNew ? "bg-term-amber/[0.03] shadow-[inset_2px_0_0_#fde047]" : ""
       }`}
     >
-      {isNew && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-      )}
-      <div className="flex items-center gap-3.5 min-w-0 relative">
+      <div className="flex items-center gap-3 min-w-0 text-[13px]">
+        <time className="text-term-dim tabular-nums shrink-0 text-[11px]">
+          [{date.slice(5, 10)} {date.slice(11, 16)}]
+        </time>
+        <span className="text-term-text truncate font-medium">{formatType(bugTypeName)}</span>
         {showHunter && hunter && (
-          <div className="flex items-center gap-2.5 shrink-0 pr-3 border-r border-white/[0.06]">
-            {hunter.avatarUrl ? (
-              <img src={hunter.avatarUrl} alt="" className="w-7 h-7 rounded-full ring-2 ring-purple-500/20" />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 flex items-center justify-center text-[10px] font-bold text-purple-300">
-                {hunter.username[0]?.toUpperCase()}
-              </div>
-            )}
-            <span className="text-sm font-medium text-zinc-300">{hunter.username}</span>
-          </div>
+          <span className="text-term-accent2 shrink-0 text-[12px]">@{hunter.username}</span>
         )}
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center shrink-0">
-          <Bug className="w-4 h-4 text-purple-400" />
-        </div>
-        <span className="text-sm text-zinc-300 truncate font-medium">{bugTypeName}</span>
         {bugTypeLink && (
           <a
             href={bugTypeLink}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="text-zinc-700 hover:text-purple-400 transition-colors"
+            className="text-term-dim hover:text-term-accent2 shrink-0 text-[11px] transition-colors"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            [↗]
           </a>
         )}
       </div>
-      <div className="flex items-center gap-3 shrink-0 relative">
+      <div className="flex items-center gap-3 shrink-0">
         {isNew && (
-          <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gradient-to-r from-pink-500/20 to-purple-500/20 text-pink-300 border border-pink-500/20">
-            <Sparkles className="w-3 h-3" />
-            NEW
+          <span className="text-[10px] font-bold text-term-amber term-glow-amber">
+            <span className="term-blink">●</span>NEW
           </span>
         )}
         <StatusBadge state={workflowState} />
-        <time className="text-[11px] text-zinc-600 tabular-nums font-medium">{date.slice(0, 10)}</time>
       </div>
     </div>
   );

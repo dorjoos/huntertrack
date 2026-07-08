@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCheck, Loader2 } from "lucide-react";
 
 export default function MarkAllReadButton({ hunterId }: { hunterId: number }) {
   const [loading, setLoading] = useState(false);
@@ -23,10 +22,9 @@ export default function MarkAllReadButton({ hunterId }: { hunterId: number }) {
     <button
       onClick={handleMarkAll}
       disabled={loading}
-      className="btn-ghost flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-400 rounded-xl hover:text-white disabled:opacity-50 transition-all"
+      className="term-btn px-3 py-1.5 text-[11px] font-bold"
     >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4 text-purple-400" />}
-      {loading ? "Marking..." : "Mark All Read"}
+      {loading ? "[ MARKING... ]" : "[ MARK ALL READ ]"}
     </button>
   );
 }

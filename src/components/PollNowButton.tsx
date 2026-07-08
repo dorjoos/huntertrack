@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, CheckCircle2, XCircle, Zap } from "lucide-react";
 
 export default function PollNowButton() {
   const [loading, setLoading] = useState(false);
@@ -24,28 +23,24 @@ export default function PollNowButton() {
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 flex-wrap">
       <button
         onClick={handlePoll}
         disabled={loading}
-        className="btn-gradient flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl disabled:cursor-not-allowed"
+        className="term-btn px-4 py-2 text-[12px] font-bold"
       >
         {loading ? (
-          <RefreshCw className="w-4 h-4 animate-spin" />
+          <>
+            [ SCANNING<span className="term-blink">█</span> ]
+          </>
         ) : (
-          <Zap className="w-4 h-4" />
+          "[ RUN POLL ]"
         )}
-        {loading ? "Scanning..." : "Poll Now"}
       </button>
       {result && (
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${
-          result.ok
-            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-            : "bg-pink-500/10 text-pink-400 border border-pink-500/20"
-        }`}>
-          {result.ok ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-          {result.text}
-        </div>
+        <span className={`text-[12px] font-medium ${result.ok ? "text-term-accent2" : "text-term-red"}`}>
+          {result.ok ? `> ${result.text.toUpperCase()}` : `!! ${result.text.toUpperCase()}`}
+        </span>
       )}
     </div>
   );

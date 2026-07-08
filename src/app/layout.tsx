@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import MobileNav from "@/components/MobileNav";
 import "./globals.css";
 
+const termFont = JetBrains_Mono({ subsets: ["latin"], variable: "--font-term" });
+
 export const metadata: Metadata = {
-  title: "YWH Tracker",
-  description: "YesWeHack Hacktivity Tracker",
+  title: "HUNTERTRACK",
+  description: "YesWeHack Hacktivity Monitor",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${termFont.variable}`}>
       <body className="antialiased">
         <div className="flex h-screen">
           <Sidebar />

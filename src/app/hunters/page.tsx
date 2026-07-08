@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import HunterCard from "@/components/HunterCard";
 import AddHunterForm from "@/components/AddHunterForm";
-import { UserSearch } from "lucide-react";
+import TermTitle from "@/components/TermTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -20,45 +20,45 @@ export default async function HuntersPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold gradient-text tracking-tight">Hunters</h1>
-          <p className="text-sm text-zinc-600 mt-1">
-            {hunters.length > 0
-              ? `Tracking ${hunters.length} hunter${hunters.length === 1 ? "" : "s"}`
-              : "Manage your watchlist"}
-          </p>
-        </div>
+        <TermTitle
+          title="HUNTERS"
+          sub={
+            hunters.length > 0
+              ? `// TRACKING ${hunters.length} HUNTER${hunters.length === 1 ? "" : "S"}`
+              : "// MANAGE YOUR WATCHLIST"
+          }
+        />
         <AddHunterForm />
       </div>
 
       {hunters.length === 0 ? (
-        <div className="card p-16 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center mb-5 animate-float">
-            <UserSearch className="w-8 h-8 text-purple-400/50" />
-          </div>
-          <p className="text-base font-medium text-zinc-400">No hunters tracked yet</p>
-          <p className="text-sm text-zinc-600 mt-2 max-w-xs">Add a YesWeHack username above to start monitoring their hacktivity.</p>
+        <div className="term-panel p-14 text-center">
+          <p className="text-[13px] text-term-mid">
+            &gt; NO HUNTERS IN WATCHLIST<span className="term-blink">_</span>
+          </p>
+          <p className="text-[11px] text-term-dim mt-2">
+            ADD A YESWEHACK USERNAME ABOVE TO START MONITORING THEIR HACKTIVITY.
+          </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {hunters.map((h, i) => (
-            <div key={h.id} style={{ animationDelay: `${i * 60}ms` }}>
-              <HunterCard
-                id={h.id}
-                username={h.username}
-                slug={h.slug}
-                avatarUrl={h.avatarUrl}
-                kycVerified={h.kycVerified}
-                points={h.points}
-                rank={h.rank}
-                nbReports={h.nbReports}
-                nationality={h.nationality}
-                addedAt={h.addedAt.toISOString()}
-                lastSeenAt={h.lastSeenAt?.toISOString() ?? null}
-                activityCount={h._count.activities}
-                unreadCount={h.activities.length}
-              />
-            </div>
+        <div className="space-y-2">
+          {hunters.map((h) => (
+            <HunterCard
+              key={h.id}
+              id={h.id}
+              username={h.username}
+              slug={h.slug}
+              avatarUrl={h.avatarUrl}
+              kycVerified={h.kycVerified}
+              points={h.points}
+              rank={h.rank}
+              nbReports={h.nbReports}
+              nationality={h.nationality}
+              addedAt={h.addedAt.toISOString()}
+              lastSeenAt={h.lastSeenAt?.toISOString() ?? null}
+              activityCount={h._count.activities}
+              unreadCount={h.activities.length}
+            />
           ))}
         </div>
       )}

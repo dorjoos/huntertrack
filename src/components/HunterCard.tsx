@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ShieldCheck, ChevronRight, Activity, Trophy, Star, Globe } from "lucide-react";
 import DeleteHunterButton from "./DeleteHunterButton";
 
 interface HunterCardProps {
@@ -29,70 +28,45 @@ function flagEmoji(code: string) {
 export default function HunterCard({
   id, username, slug, avatarUrl, kycVerified,
   points, rank, nbReports, nationality,
-  addedAt, lastSeenAt, activityCount, unreadCount,
+  activityCount, unreadCount,
 }: HunterCardProps) {
   return (
-    <div className="card card-glow group animate-fade-up relative">
-      <Link href={`/hunters/${slug}`} className="flex items-center gap-5 p-5">
-        <div className="relative">
+    <div className="term-panel hover:border-term-border group relative animate-fade-up">
+      <Link href={`/hunters/${slug}`} className="flex items-center gap-4 p-4">
+        <div className="relative shrink-0">
           {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={username}
-              className="w-12 h-12 rounded-2xl ring-2 ring-purple-500/20 group-hover:ring-purple-500/40 transition-all"
-            />
+            <img src={avatarUrl} alt={username} className="w-12 h-12 border border-term-line object-cover" />
           ) : (
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center ring-2 ring-purple-500/20 group-hover:ring-purple-500/40 transition-all">
-              <span className="text-lg font-bold gradient-text">{username[0]?.toUpperCase()}</span>
+            <div className="w-12 h-12 border border-term-line bg-term-raised flex items-center justify-center">
+              <span className="text-lg font-bold text-term-accent2">{username[0]?.toUpperCase()}</span>
             </div>
           )}
           {unreadCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-[#06060a] shadow-lg shadow-pink-500/30">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-term-amber text-term-bg text-[10px] font-bold flex items-center justify-center">
               {unreadCount}
             </span>
           )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="font-semibold text-zinc-100 text-[15px] group-hover:text-white transition-colors">{username}</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-bold text-term-bright text-[14px]">@{username}</span>
             {nationality && <span className="text-sm" title={nationality}>{flagEmoji(nationality)}</span>}
-            {kycVerified && (
-              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">
-                <ShieldCheck className="w-3 h-3" />
-                KYC
-              </span>
-            )}
+            {kycVerified && <span className="text-[10px] font-bold text-term-accent2">[KYC✓]</span>}
           </div>
-          <div className="flex items-center gap-4 text-[12px] text-zinc-600">
-            <span className="flex items-center gap-1">
-              <Star className="w-3 h-3 text-amber-500/50" />
-              <span className="text-amber-400/80 font-medium">{points}</span> pts
-            </span>
-            {rank && (
-              <span className="flex items-center gap-1">
-                <Trophy className="w-3 h-3 text-purple-500/50" />
-                #<span className="text-purple-400/80 font-medium">{rank.toLocaleString()}</span>
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <Activity className="w-3 h-3 text-blue-500/50" />
-              <span className="text-blue-400/80 font-medium">{nbReports}</span> reports
-            </span>
-            <span className="flex items-center gap-1">
-              <Globe className="w-3 h-3 text-cyan-500/50" />
-              <span className="text-zinc-500">{activityCount} tracked</span>
-            </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-term-dim tabular-nums">
+            <span>PTS:<span className="text-term-amber">{points}</span></span>
+            {rank && <span>RANK:<span className="text-term-text">#{rank.toLocaleString()}</span></span>}
+            <span>REPORTS:<span className="text-term-text">{nbReports}</span></span>
+            <span>TRACKED:<span className="text-term-text">{activityCount}</span></span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-white/[0.03] flex items-center justify-center group-hover:bg-purple-500/10 transition-colors">
-            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-purple-400 transition-colors" />
-          </div>
-        </div>
+        <span className="text-term-dim group-hover:text-term-accent2 text-sm font-bold transition-colors shrink-0">
+          {">>"}
+        </span>
       </Link>
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-2 right-2 z-10">
         <DeleteHunterButton hunterId={id} hunterName={username} />
       </div>
     </div>
