@@ -33,11 +33,12 @@ workflow every 30 minutes. Keep the daily Vercel cron as a fallback.
   - `APP_URL` — `https://huntert.vercel.app` (kept as a secret so the workflow
     file stays deployment-agnostic).
 
-### Unchanged: `vercel.json`
+### Removed: `vercel.json`
 
-The daily 08:00 UTC Vercel cron stays as a fallback in case the GitHub workflow
-is disabled. Duplicate polls are harmless: `Activity` has a unique constraint on
-`(hunterId, date, bugTypeSlug, workflowState)` and duplicate inserts are skipped.
+Originally the daily 08:00 UTC Vercel cron was kept as a fallback, but per user
+decision (2026-07-08) Vercel cron is dropped entirely — GitHub Actions is the
+sole scheduler. `vercel.json` only contained the cron config, so the file is
+deleted.
 
 ## Known constraints
 
