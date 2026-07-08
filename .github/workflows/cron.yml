@@ -9,11 +9,5 @@ jobs:
   poll:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger /api/cron
-        run: |
-          curl -fsS -m 290 \
-            -H "Authorization: Bearer $CRON_SECRET" \
-            "$APP_URL/api/cron"
-        env:
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          APP_URL: ${{ secrets.APP_URL }}
+      - name: Trigger poll
+        run: curl -fsS -m 290 -X POST "https://huntert.vercel.app/api/poll"

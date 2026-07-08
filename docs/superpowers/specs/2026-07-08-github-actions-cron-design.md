@@ -1,44 +1,47 @@
 # GitHub Actions Cron for YWH Tracker Polling
 
 **Date:** 2026-07-08
-**Status:** Approved
+**Status:** Implemented (revised twice, see Amendments)
 
 ## Problem
 
-The app polls the YesWeHack API via `GET /api/cron` (protected by `CRON_SECRET`).
-Vercel Hobby plan limits cron jobs to once per day (`vercel.json` currently runs
-at 08:00 UTC), which is too infrequent for activity monitoring. We want polling
-every 30 minutes.
+The app polls the YesWeHack API on a schedule. Vercel Hobby plan limits cron
+jobs to once per day, which is too infrequent for activity monitoring. We want
+polling every 30 minutes.
 
 ## Decision
 
-Trigger the existing `/api/cron` endpoint from a GitHub Actions scheduled
-workflow every 30 minutes. Keep the daily Vercel cron as a fallback.
+Trigger the app's poll endpoint from a GitHub Actions scheduled workflow every
+30 minutes. Vercel cron is dropped entirely; GitHub Actions is the sole
+scheduler.
 
 ## Design
 
-### New file: `.github/workflows/cron.yml`
+### `.github/workflows/cron.yml`
 
 - **Triggers:**
   - `schedule: */30 * * * *` (every 30 minutes)
   - `workflow_dispatch` (manual runs from the Actions tab)
-- **Job:** single step on `ubuntu-latest` that calls:
-  `curl -fsS -m 290 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron"`
+- **Job:** single step on `ubuntu-latest`:
+  `curl -fsS -m 290 -X POST "https://huntert.vercel.app/api/poll"`
   - `-f` makes HTTP 4xx/5xx fail the step, so failed polls show as red runs
     and GitHub emails the repo owner.
   - `-m 290` bounds the request just under 5 minutes; the poller sleeps ~1s per
     hunter plus ~1s per hacktivity page, so runs are normally well under this.
-- **Secrets** (repo Settings → Secrets and variables → Actions):
-  - `CRON_SECRET` — same value as the Vercel env var.
-  - `APP_URL` — `https://huntert.vercel.app` (kept as a secret so the workflow
-    file stays deployment-agnostic).
+- No GitHub secrets required.
 
-### Removed: `vercel.json`
+### Removed: `vercel.json`, `/api/cron`, `CRON_SECRET`
 
-Originally the daily 08:00 UTC Vercel cron was kept as a fallback, but per user
-decision (2026-07-08) Vercel cron is dropped entirely — GitHub Actions is the
-sole scheduler. `vercel.json` only contained the cron config, so the file is
-deleted.
+- `vercel.json` only contained the daily Vercel cron config; deleted.
+- Per user decision, the poll trigger is unauthenticated. The dedicated
+  `/api/cron` route (bearer-token wrapper around `runPoll()`) became redundant
+  with the already-open `POST /api/poll`, so it was deleted and the workflow
+  calls `/api/poll` directly.
+- `CRON_SECRET` removed from `.env`, `.env.example`, and GitHub secrets.
+- Accepted risk: anyone who finds the URL can trigger polls (resource use on
+  Vercel/Neon and extra YesWeHack API traffic). Data integrity is unaffected —
+  `Activity` has a unique constraint on
+  `(hunterId, date, bugTypeSlug, workflowState)` and duplicates are skipped.
 
 ## Known constraints
 
@@ -46,15 +49,20 @@ deleted.
   30-minute monitoring.
 - GitHub disables scheduled workflows after 60 days without repo activity
   (public repos); GitHub emails a warning and the workflow can be re-enabled
-  with one click. The Vercel daily cron covers the gap.
-- Verified in production: `/api/cron` returns 401 without the bearer token, so
-  auth is enforced and `CRON_SECRET` is configured on Vercel.
-- Separate issue, out of scope: the production root page currently returns 500
-  (likely the DB connection issue the uncommitted `src/lib/db.ts` change is
-  addressing). The cron endpoint will also fail until the DB connection works.
+  with one click.
+- Blocker at time of writing: Vercel has NO environment variables configured,
+  so production returns 500 (no `DATABASE_URL`). `DATABASE_URL` must be set in
+  Vercel project settings and the app redeployed before polls succeed.
 
 ## Testing
 
 - Manually trigger the workflow via `workflow_dispatch` and confirm a green run
   and a new `PollLog` row.
-- Confirm a run with a wrong secret fails red (auth guard works end to end).
+
+## Amendments
+
+1. Original design kept the daily Vercel cron as fallback and protected the
+   trigger with `CRON_SECRET` (GitHub secrets `CRON_SECRET` + `APP_URL`).
+2. 2026-07-08: user dropped Vercel cron entirely.
+3. 2026-07-08: user dropped `CRON_SECRET`; workflow simplified to an
+   unauthenticated `POST /api/poll` with the URL inlined.
