@@ -51,25 +51,25 @@ export default function ActivityEntry({
       }`}
     >
       <div className="flex items-center gap-3 min-w-0 text-[13px]">
+        {showHunter && hunter && (
+          hunter.avatarUrl ? (
+            <img
+              src={hunter.avatarUrl}
+              alt=""
+              className="w-5 h-5 border border-term-line object-cover shrink-0"
+            />
+          ) : (
+            <span className="w-5 h-5 border border-term-line bg-term-raised flex items-center justify-center text-[9px] font-bold text-term-accent2 shrink-0">
+              {hunter.username[0]?.toUpperCase()}
+            </span>
+          )
+        )}
         <time className="text-term-dim tabular-nums shrink-0 text-[11px]">
           [{date.slice(5, 10)} {date.slice(11, 16)}]
         </time>
         <span className="text-term-text truncate font-medium">{formatType(bugTypeName)}</span>
         {showHunter && hunter && (
-          <span className="flex items-center gap-1.5 shrink-0">
-            {hunter.avatarUrl ? (
-              <img
-                src={hunter.avatarUrl}
-                alt=""
-                className="w-5 h-5 border border-term-line object-cover"
-              />
-            ) : (
-              <span className="w-5 h-5 border border-term-line bg-term-raised flex items-center justify-center text-[9px] font-bold text-term-accent2">
-                {hunter.username[0]?.toUpperCase()}
-              </span>
-            )}
-            <span className="text-term-accent2 text-[12px]">@{hunter.username}</span>
-          </span>
+          <span className="text-term-accent2 shrink-0 text-[12px]">@{hunter.username}</span>
         )}
         {bugTypeLink && (
           <a
