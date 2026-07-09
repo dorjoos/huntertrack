@@ -56,10 +56,10 @@ export default function ActivityEntry({
             <img
               src={hunter.avatarUrl}
               alt=""
-              className="w-5 h-5 border border-term-line object-cover shrink-0"
+              className="w-7 h-7 border border-term-line object-cover shrink-0"
             />
           ) : (
-            <span className="w-5 h-5 border border-term-line bg-term-raised flex items-center justify-center text-[9px] font-bold text-term-accent2 shrink-0">
+            <span className="w-7 h-7 border border-term-line bg-term-raised flex items-center justify-center text-[11px] font-bold text-term-accent2 shrink-0">
               {hunter.username[0]?.toUpperCase()}
             </span>
           )
