@@ -2,7 +2,9 @@ name: Poll YesWeHack
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    # Off-peak minutes: runs scheduled at :00/:30 are the most throttled on
+    # GitHub's shared runners, which stretched our 30-min cadence to hours.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 jobs:
